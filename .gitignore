@@ -1,0 +1,8 @@
+/build/
+/dist/
+/work/
+.DS_Store
+/DerivedData/
+*.dSYM/
+*.log
+*.sock
