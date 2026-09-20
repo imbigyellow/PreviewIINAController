@@ -1,10 +1,12 @@
 # PreviewIINAController
 
+**3秒版本（v1.0.1）**：基于 v1.0.0，仅将 Q 改为后退 3 秒；W 播放/暂停和 E 前进 5 秒保持不变。没有设置窗口或配置读取，v1.1.0 的自定义设置不影响此版本。历史版本完整保留。
+
 一个极轻量、原生的 macOS 后台小工具。在 Preview（预览）阅读时，用裸 Q/W/E 控制后台的 IINA：
 
 | 按键 | 操作 |
 | --- | --- |
-| Q | 后退 5 秒 |
+| Q | 后退 3 秒 |
 | W | 播放 / 暂停 |
 | E | 前进 5 秒 |
 
@@ -29,7 +31,7 @@
 
 ## Installation
 
-1. 从 [GitHub Releases](https://github.com/imbigyellow/PreviewIINAController/releases/latest) 下载 **`PreviewIINAController-arm64.zip`**。不要下载 GitHub 自动生成的 **Source code (zip/tar.gz)**，它们只有源码，不能直接运行。
+1. 从 [GitHub Releases](https://github.com/imbigyellow/PreviewIINAController/releases/tag/v1.0.1) 下载 **`PreviewIINAController-arm64.zip`**。不要下载 GitHub 自动生成的 **Source code (zip/tar.gz)**，它们只有源码，不能直接运行。
 2. 解压，把 `PreviewIINAController.app` 拖入 `/Applications`（应用程序）。
 3. 双击启动。本版本只有本地 ad-hoc 代码签名，**没有 Apple Developer ID 签名，也没有经过 Apple notarization（公证）**，Gatekeeper 可能阻止首次打开。
 4. 如果被阻止，在确认下载来源后，打开 **系统设置 → 隐私与安全性**，找到该应用被阻止的提示，点击 **仍要打开 / Open Anyway**，按系统要求认证并确认打开。应先尝试打开应用，相关按钮才会出现；不需要关闭 Gatekeeper。参见 [Apple 官方说明](https://support.apple.com/zh-cn/102445)。
@@ -40,7 +42,7 @@
 
 ## Usage
 
-打开 IINA 并播放音频，然后切换到 Preview 阅读：Q = -5s，W = Play/Pause，E = +5s。切换到其他 App 后，Q/W/E 正常输入。
+打开 IINA 并播放音频，然后切换到 Preview 阅读：Q = -3s，W = Play/Pause，E = +5s。切换到其他 App 后，Q/W/E 正常输入。
 
 应用在后台常驻，正常运行不会弹窗或抢前台焦点。退出时，在“活动监视器”中找到 `PreviewIINAController` 并退出。
 
@@ -61,7 +63,7 @@
 需要 Apple Silicon Mac 和 Xcode Command Line Tools（或 Xcode），没有第三方依赖：
 
 ```bash
-git clone https://github.com/imbigyellow/PreviewIINAController.git
+git clone --branch fixed-3-seconds https://github.com/imbigyellow/PreviewIINAController.git
 cd PreviewIINAController
 ./build.sh
 ```

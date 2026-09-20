@@ -17,7 +17,7 @@ for key in keys {
 for key: Int64 in 0..<128 where !keys.contains(key) {
     precondition(commandForKey(key, flags: []) == nil)
 }
-precondition(String(decoding: Command.back.payload, as: UTF8.self) == "{\"command\":[\"seek\",-5,\"relative\"]}\n")
+precondition(String(decoding: Command.back.payload, as: UTF8.self) == "{\"command\":[\"seek\",-3,\"relative\"]}\n")
 precondition(String(decoding: Command.pause.payload, as: UTF8.self) == "{\"command\":[\"cycle\",\"pause\"]}\n")
 precondition(String(decoding: Command.forward.payload, as: UTF8.self) == "{\"command\":[\"seek\",5,\"relative\"]}\n")
 print("PASS: key filtering, all 255 modifier combinations, command payloads; no injected events")

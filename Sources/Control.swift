@@ -7,7 +7,7 @@ enum Command: Sendable {
     var payload: [UInt8] {
         let json: String
         switch self {
-        case .back: json = "{\"command\":[\"seek\",-5,\"relative\"]}\n"
+        case .back: json = "{\"command\":[\"seek\",-3,\"relative\"]}\n"
         case .pause: json = "{\"command\":[\"cycle\",\"pause\"]}\n"
         case .forward: json = "{\"command\":[\"seek\",5,\"relative\"]}\n"
         }
