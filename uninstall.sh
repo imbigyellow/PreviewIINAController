@@ -11,7 +11,7 @@ done < <(ps -axo pid=,comm=)
 # Remove only known generated files. Preserve source, Git history and unknown files.
 rm -f -- "$TARGET" build/PreviewIINAController.app/Contents/Info.plist \
   build/PreviewIINAController.app/Contents/_CodeSignature/CodeResources \
-  build/filter-tests dist/PreviewIINAController-arm64.zip
+  build/filter-tests build/ui-tests dist/PreviewIINAController-arm64.zip
 for dir in build/PreviewIINAController.app/Contents/_CodeSignature \
   build/PreviewIINAController.app/Contents/MacOS build/PreviewIINAController.app/Contents \
   build/PreviewIINAController.app build dist; do

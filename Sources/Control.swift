@@ -4,33 +4,33 @@ import Darwin
 
 enum Command: Sendable {
     case back, pause, forward
-    var payload: [UInt8] {
+    func payload(backSeconds: Int = 5, forwardSeconds: Int = 5) -> [UInt8] {
         let json: String
         switch self {
-        case .back: json = "{\"command\":[\"seek\",-5,\"relative\"]}\n"
+        case .back: json = "{\"command\":[\"seek\",-\(backSeconds),\"relative\"]}\n"
         case .pause: json = "{\"command\":[\"cycle\",\"pause\"]}\n"
-        case .forward: json = "{\"command\":[\"seek\",5,\"relative\"]}\n"
+        case .forward: json = "{\"command\":[\"seek\",\(forwardSeconds),\"relative\"]}\n"
         }
         return Array(json.utf8)
     }
 }
 
 // Pure filtering: no event creation, mutation or injection.
-func commandForKey(_ key: Int64, flags: CGEventFlags) -> Command? {
-    guard key == 12 || key == 13 || key == 14 else { return nil }
+func commandForKey(_ key: Int64, flags: CGEventFlags, settings: Settings = Settings()) -> Command? {
+    guard key == settings.backKey || key == settings.pauseKey || key == settings.forwardKey else { return nil }
     // NonCoalesced is event metadata, not a modifier. Unknown flags fail open.
     guard flags.rawValue & ~CGEventFlags.maskNonCoalesced.rawValue == 0 else { return nil }
     switch key {
-    case 12: return .back
-    case 13: return .pause
+    case settings.backKey: return .back
+    case settings.pauseKey: return .pause
     default: return .forward
     }
 }
 
 final class IPC: @unchecked Sendable {
     private let queue = DispatchQueue(label: "local.PreviewIINAController.iinaIPCQueue")
-    func submit(_ command: Command) {
-        queue.async { Self.send(command.payload) }
+    func submit(_ command: Command, backSeconds: Int, forwardSeconds: Int) {
+        queue.async { Self.send(command.payload(backSeconds: backSeconds, forwardSeconds: forwardSeconds)) }
     }
     private static func send(_ bytes: [UInt8]) {
         let fd = socket(AF_UNIX, SOCK_STREAM, 0)
@@ -77,6 +77,13 @@ final class Controller {
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private let ipc = IPC()
+    private(set) var settings = Settings.load()
+
+    func apply(_ value: Settings) {
+        precondition(Thread.isMainThread)
+        guard value.save() else { return }
+        settings = value
+    }
 
     func start() -> Bool {
         precondition(Thread.isMainThread)
@@ -114,9 +121,9 @@ final class Controller {
         }
         guard type == .keyDown else { return Unmanaged.passUnretained(event) }
         let key = event.getIntegerValueField(.keyboardEventKeycode)
-        guard let command = commandForKey(key, flags: event.flags), isPreviewFrontmost
+        guard let command = commandForKey(key, flags: event.flags, settings: settings), isPreviewFrontmost
         else { return Unmanaged.passUnretained(event) }
-        ipc.submit(command)
+        ipc.submit(command, backSeconds: settings.backSeconds, forwardSeconds: settings.forwardSeconds)
         return nil
     }
 

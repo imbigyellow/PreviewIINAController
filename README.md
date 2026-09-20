@@ -1,6 +1,6 @@
 # PreviewIINAController
 
-一个极轻量、原生的 macOS 后台小工具。在 Preview（预览）阅读时，用裸 Q/W/E 控制后台的 IINA：
+一个极轻量、原生的 macOS 后台小工具。在 Preview（预览）阅读时，用自定义裸键控制后台的 IINA，默认如下：
 
 | 按键 | 操作 |
 | --- | --- |
@@ -8,7 +8,7 @@
 | W | 播放 / 暂停 |
 | E | 前进 5 秒 |
 
-**仅在 Preview 位于前台时生效。** 切换到其他应用后，Q/W/E 正常输入。Command、Option、Control、Shift 等修饰键组合原样放行。无 Dock 图标、菜单栏图标或主窗口；不自动设置登录启动。
+**仅在 Preview 位于前台时生效。** 切换到其他应用后，Q/W/E 正常输入。Command、Option、Control、Shift 等修饰键组合原样放行。无 Dock 图标、菜单栏图标或常驻主窗口；不自动设置登录启动。
 
 ## Requirements
 
@@ -44,17 +44,31 @@
 
 应用在后台常驻，正常运行不会弹窗或抢前台焦点。退出时，在“活动监视器”中找到 `PreviewIINAController` 并退出。
 
+### 自定义按键和秒数（v1.1.0）
+
+应用运行后，**再次双击 `/Applications/PreviewIINAController.app`** 打开设置窗口。若应用尚未运行，第一次双击只会在后台启动，再次双击才打开设置。
+
+- 点击一行的按键按钮，按下要使用的字母或数字裸键；Esc 取消录入。
+- 后退、前进秒数可分别设置为 1–3600 的整数，例如 3 秒和 5 秒。
+- 三个按键不能重复。Command、Option、Control、Shift、Fn 等组合不接受绑定，并继续原样放行。
+- 点击“保存”后立即生效并保存在本机；关闭窗口不保存尚未提交的更改。
+- “恢复默认”将表单恢复为 Q/W/E 和 5 秒，再点“保存”确认。
+
+窗口按需创建、关闭后释放。没有新增后台轮询或 timer；设置仅在启动时读取、保存时更新，按键回调不读写配置文件。配置通过 macOS UserDefaults 存放在 `local.PreviewIINAController` 域，不会上传。
+
+更新时先退出旧版本，再用新版替换应用程序中的 App。可能需要重新授予辅助功能权限。历史 [v1.0.0](https://github.com/imbigyellow/PreviewIINAController/releases/tag/v1.0.0) 及其下载文件继续保留；回退旧版会恢复固定 Q/W/E + 5 秒行为。
+
 ### 已知限制
 
-- Preview 搜索框和其他文本输入场景中的裸 Q/W/E 也会被拦截。
-- 使用物理键码 12/13/14，不随键盘布局变化。
+- Preview 搜索框和其他文本输入场景中的已绑定裸键也会被拦截。
+- 使用物理键位，不随键盘布局变化；界面字母/数字标签按 ANSI 键位显示，默认键码为 12/13/14。
 - Caps Lock 或 Fn 等标志存在时放行；按住裸键会按系统设置重复触发，包括 W。
-- IINA 未运行、socket 不存在或忙碌时静默丢弃命令；Preview 中的裸 Q/W/E 仍会被吞掉。
+- IINA 未运行、socket 不存在或忙碌时静默丢弃命令；Preview 中已绑定的裸键仍会被吞掉。
 - macOS 安全输入模式可能阻止 EventTap 接收按键。
 
 ## Privacy
 
-无 analytics、telemetry 或键盘输入上传。不建立互联网连接；仅通过本机 Unix Domain Socket `/tmp/iina-socket` 向 IINA 发送固定命令。EventTap 只用于本地快捷键过滤：非 Q/W/E 按键立即放行，带修饰键或 Preview 不在前台时也返回原始事件。不模拟或重新注入键盘事件，不持续写日志。
+无 analytics、telemetry 或键盘输入上传。不建立互联网连接；仅通过本机 Unix Domain Socket `/tmp/iina-socket` 向 IINA 发送固定命令。EventTap 只用于本地快捷键过滤：非已绑定按键立即放行，带修饰键或 Preview 不在前台时也返回原始事件。不模拟或重新注入键盘事件，不持续写日志。
 
 ## Build from source
 
@@ -80,6 +94,7 @@ cd PreviewIINAController
 
 ```bash
 ./test.sh
+./test-ui.sh  # 原生窗口校验；会短暂打开独立测试窗口，不启动 EventTap
 ```
 
 ## 实现与维护
@@ -88,7 +103,7 @@ Swift + AppKit/NSWorkspace + CoreGraphics CGEventTap + GCD + Darwin Unix socket�
 
 EventTap callback 只过滤、投递命令并返回；非阻塞 socket、partial write、SIGPIPE 和错误路径在 IPC 队列处理。运行时不依赖 shell、AppleScript、osascript、nc、skhd、Karabiner 或外部控制脚本。仓库中的 shell 脚本只负责构建、打包、测试或清理。
 
-核心功能已在 Apple Silicon / macOS 26.6.2 实际使用验证。自动测试覆盖目标键、非目标键、255 种修饰键组合及 JSON 命令。未来修改以本仓库为基础。
+核心功能已在 Apple Silicon / macOS 26.6.2 实际使用验证。v1.1.0 自动测试覆盖默认/自定义键位、255 种修饰键组合、JSON 命令、配置持久化、无效配置回退和设置窗口的校验/保存流程；未通过模拟键盘验证真实录键或 IINA 联动。未来修改以本仓库为基础。
 
 ## Uninstall
 
@@ -98,7 +113,7 @@ EventTap callback 只过滤、投递命令并返回；非阻塞 socket、partial
 
 不会删除或修改 IINA、IINA 设置或 `/tmp/iina-socket`。是否删除 IINA 的 IPC 配置由你自行决定。
 
-源码用户可在退出本地构建后执行 `./uninstall.sh` 清理本项目 `build` / `dist` 中列出的生成文件；脚本保留源码和 Git 历史，不操作 `/Applications` 或权限数据库。不再需要源码时，可自行将整个仓库目录移到废纸篓。
+源码用户可在退出本地构建后执行 `./uninstall.sh` 清理本项目 `build` / `dist` 中列出的生成文件；脚本保留源码、用户设置和 Git 历史，不操作 `/Applications` 或权限数据库。不再需要源码时，可自行将整个仓库目录移到废纸篓。
 
 ## License
 

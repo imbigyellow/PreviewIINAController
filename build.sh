@@ -7,7 +7,7 @@ OUTPUT="$(cd -- "$OUTPUT" && pwd)"
 APP="$OUTPUT/PreviewIINAController.app"
 mkdir -p "$APP/Contents/MacOS"
 xcrun swiftc -O -whole-module-optimization -warnings-as-errors -swift-version 5 \
-  -target arm64-apple-macosx13.0 Sources/Control.swift Sources/main.swift \
+  -target arm64-apple-macosx13.0 Sources/Settings.swift Sources/Control.swift Sources/main.swift \
   -framework AppKit -framework CoreGraphics -framework ApplicationServices \
   -o "$APP/Contents/MacOS/PreviewIINAController"
 cp Info.plist "$APP/Contents/Info.plist"
